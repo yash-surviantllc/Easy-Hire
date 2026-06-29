@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
         enum: ['candidate', 'recruiter'],
         required: true
     },
-    prfile: {
+    profile: {
         bio: { type: String },
         skills: [{ type: String }],
         resume: { type: String }, // Url for the resume file
