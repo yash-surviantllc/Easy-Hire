@@ -10,7 +10,7 @@ const isAuthenticated = async (req, res, next) => {
             });
         }
 
-        const decode = await jwt.verify(token, process.env.SECRET_kEY); //JWT seceret key is used to verify the token
+        const decode = await jwt.verify(token, process.env.SECRET_KEY); //JWT seceret key is used to verify the token
         if (!decode) {
             return res.status(401).json({
                 message: "Invalid token, Please login to access this resource",

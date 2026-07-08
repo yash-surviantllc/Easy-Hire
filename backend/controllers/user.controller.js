@@ -104,7 +104,7 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
-        return res.status(200).cookie("token", "", { maxAge: 0 }).json({
+        return res.status(200).cookie("token", "", { maxAge: 0, httpOnly: true, sameSite: 'strict' }).json({
             message: "Logout successfully",
             success: true
         });
@@ -136,11 +136,6 @@ export const updateProfile = async (req, res) => {
         if (phoneNumber) user.phoneNumber = phoneNumber
         if (bio) user.profile.bio = bio
         if (skills) user.profile.skills = skillsArray
-        // user.fullName = fullName;
-        // user.email = email;
-        // user.phoneNumber = phoneNumber;
-        // user.profile.bio = bio;
-        // user.profile.skills = skillsArray;
 
         //resume will come later here...
         await user.save();

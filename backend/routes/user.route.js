@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.route("/register").post(register);
 router.route("/login").post(login);
-router.route("/logout").get(logout);
+router.route("/logout").get(logout).post(logout);
 router.route("/profile/update").post(isAuthenticated, updateProfile); // we are using isAuthenticated middleware to check if the user is authenticated or not before updating the profile
 
 export default router;
