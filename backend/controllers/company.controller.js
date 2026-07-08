@@ -2,7 +2,7 @@ import { Company } from "../models/company.model.js";
 
 export const registerCompany = async (req, res) => {
     try {
-        const { companyName } = req.body;
+        const { companyName, description, website, location } = req.body;
         if (!companyName) {
             return res.status(400).json({
                 message: "Company name is required",
@@ -20,6 +20,9 @@ export const registerCompany = async (req, res) => {
 
         const company = await Company.create({
             name: companyName,
+            description: description || "",
+            website: website || "",
+            location: location || "",
             userId: req.userId // we are storing the user id in the company model so that we can use it to get the companies created by the user
         });
 
@@ -32,6 +35,10 @@ export const registerCompany = async (req, res) => {
 
     } catch (error) {
         console.error("Error registering company:", error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }
 
@@ -52,6 +59,10 @@ export const getCompany = async (req, res) => {
         });
     } catch (error) {
         console.error("Error getting company:", error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }
 //get company by id
@@ -72,6 +83,16 @@ export const getCompanyById = async (req, res) => {
         });
     } catch (error) {
         console.error("Error getting company by ID:", error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                message: "Invalid company ID format",
+                success: false
+            });
+        }
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }
 
@@ -100,5 +121,21 @@ export const updateCompany = async (req, res) => {
 
     } catch (error) {
         console.error("Error updating company:", error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                message: "Invalid company ID format",
+                success: false
+            });
+        }
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                message: Object.values(error.errors).map(val => val.message).join(', '),
+                success: false
+            });
+        }
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }        

@@ -21,6 +21,10 @@ const isAuthenticated = async (req, res, next) => {
         next(); // we are calling the next middleware or controller
     } catch (error) {
         console.log(error);
+        return res.status(401).json({
+            message: "Invalid token, Authorization failed",
+            success: false
+        });
     }
 }
 export default isAuthenticated;

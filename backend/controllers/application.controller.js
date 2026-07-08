@@ -48,6 +48,16 @@ export const applyJob = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                message: "Invalid job ID format",
+                success: false
+            });
+        }
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 };
 
@@ -78,6 +88,10 @@ export const getAppliedJobs = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 };
 
@@ -91,6 +105,7 @@ export const getApplicants = async (req, res) => {
             options: { sort: { createdAt: -1 } },
             populate: {
                 path: 'applicant',
+                select: '-password'
                 //nested populate to find applicant details of the application-> check in application model
             }
         });
@@ -108,6 +123,10 @@ export const getApplicants = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }
 
@@ -141,5 +160,15 @@ export const updateStatus = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                message: "Invalid application ID format",
+                success: false
+            });
+        }
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 };

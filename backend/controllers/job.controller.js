@@ -43,6 +43,16 @@ export const postJob = async (req, res) => {
         });
     } catch (error) {
         console.error("Error creating job:", error);
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                message: Object.values(error.errors).map(val => val.message).join(', '),
+                success: false
+            });
+        }
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }
 // for candidate to get all jobs
@@ -60,7 +70,7 @@ export const getAllJobs = async (req, res) => {
 
         }).sort({ createdAt: -1 });
 
-        if (!jobs) {
+        if (!jobs || jobs.length === 0) {
             return res.status(404).json({
                 message: "No jobs found",
                 success: false
@@ -73,6 +83,10 @@ export const getAllJobs = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching jobs:", error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }
 
@@ -80,10 +94,12 @@ export const getAllJobs = async (req, res) => {
 export const getJobById = async (req, res) => {
     try {
         const jobId = req.params.id;
-        const job = await Job.findById(jobId);
+        const job = await Job.findById(jobId).populate({
+            path: "company"
+        });
         if (!job) {
             return res.status(404).json({
-                message: "Jobs not found",
+                message: "Job not found",
                 success: false
             });
         };
@@ -94,6 +110,10 @@ export const getJobById = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }
 
@@ -102,7 +122,10 @@ export const getAdminJobs = async (req, res) => {
     try {
         // it gets the admin id of the logged in admin , it help to find data for unique admins
         const adminId = req.userId;
-        const jobs = await Job.find({ created_by: adminId });
+        const jobs = await Job.find({ created_by: adminId }).populate({
+            path: "company"
+        }).sort({ createdAt: -1 });
+        
         if (!jobs) {
             return res.status(404).json({
                 message: "Jobs not found",
@@ -116,6 +139,10 @@ export const getAdminJobs = async (req, res) => {
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }
 
