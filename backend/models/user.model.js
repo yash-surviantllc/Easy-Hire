@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
         enum: ['candidate', 'recruiter'],
         required: true
     },
+    refreshToken: {
+        type: String,
+        default: ""
+    },
     profile: {
         bio: { type: String },
         skills: [{ type: String }],

@@ -22,7 +22,7 @@ export const register = async (req, res) => {
                 success: false
             });
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10); // this is salt round which makes the hashedpassword strong
 
         await User.create({
             fullName,
@@ -45,6 +45,7 @@ export const register = async (req, res) => {
                 success: false
             });
         }
+        // error code to display when there is something issue with mongodb
         if (error.code === 11000) {
             return res.status(400).json({
                 message: "User already exists with this email",
@@ -90,9 +91,16 @@ export const login = async (req, res) => {
         };
 
         const tokenData = {
-            userId: user._id  //fetched from database
+            userId: user._id
         }
-        const token = await jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: "1d" });
+
+        //used new access and refresh token mechanism for security. Revise again
+        const accessToken = await jwt.sign(tokenData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+        const refreshToken = await jwt.sign(tokenData, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+
+        // Save refresh token to user model
+        user.refreshToken = refreshToken;
+        await user.save();
 
         user = {
             _id: user._id,
@@ -103,11 +111,14 @@ export const login = async (req, res) => {
             profile: user.profile
         };
 
-        return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict' }).json({
-            message: `Welcome back ${user.fullName}`,
-            user, // user data from the database
-            success: true
-        });
+        return res.status(200)
+            .cookie("accessToken", accessToken, { maxAge: 15 * 60 * 1000, httpOnly: true, sameSite: 'strict' })
+            .cookie("refreshToken", refreshToken, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict' })
+            .json({
+                message: `Welcome back ${user.fullName}`,
+                user,
+                success: true
+            });
 
     } catch (error) {
         console.log(error);
@@ -120,10 +131,23 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
-        return res.status(200).cookie("token", "", { maxAge: 0, httpOnly: true, sameSite: 'strict' }).json({
-            message: "Logout successfully",
-            success: true
-        });
+        const token = req.cookies.refreshToken;
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+                await User.findByIdAndUpdate(decoded.userId, { refreshToken: "" });
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        //cleared my AT and RT when user logs out
+        return res.status(200)
+            .cookie("accessToken", "", { maxAge: 0, httpOnly: true, sameSite: 'strict' })
+            .cookie("refreshToken", "", { maxAge: 0, httpOnly: true, sameSite: 'strict' })
+            .json({
+                message: "Logout successfully",
+                success: true
+            });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
@@ -139,7 +163,7 @@ export const updateProfile = async (req, res) => {
 
         //cloudinary integration will come here for resume file upload
 
-        // const skillsArray = skills.split(",");
+        // const skillsArray = skills.split(","); use an array to store skills
         const skillsArray = skills ? skills.split(",") : [];
 
         const userId = req.userId; //userid is required to update the profile , middleware authentication
@@ -185,6 +209,54 @@ export const updateProfile = async (req, res) => {
         }
         return res.status(500).json({
             message: "Internal server error",
+            success: false
+        });
+    }
+}
+
+// we will use this to display at frontend or my client app when the token is not present to relogin or regeneate new tokens
+export const refreshToken = async (req, res) => {
+    try {
+        const token = req.cookies.refreshToken;
+        if (!token) {
+            return res.status(401).json({
+                message: "Refresh token missing, please login again",
+                success: false
+            });
+        }
+
+        const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+        if (!decoded) {
+            return res.status(401).json({
+                message: "Invalid refresh token",
+                success: false
+            });
+        }
+
+        const user = await User.findById(decoded.userId);
+        if (!user || user.refreshToken !== token) {
+            return res.status(401).json({
+                message: "Session expired or invalid, please login again",
+                success: false
+            });
+        }
+
+        const newAccessToken = jwt.sign(
+            { userId: user._id },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: "15m" }
+        );
+
+        return res.status(200)
+            .cookie("accessToken", newAccessToken, { maxAge: 15 * 60 * 1000, httpOnly: true, sameSite: 'strict' })
+            .json({
+                message: "Token refreshed successfully",
+                success: true
+            });
+    } catch (error) {
+        console.log(error);
+        return res.status(401).json({
+            message: "Authentication session expired, please login again",
             success: false
         });
     }
