@@ -18,7 +18,9 @@ const isAuthenticated = async (req, res, next) => {
                 success: false
             });
         };
+        // to decode the role and attach it to the request context
         req.userId = decode.userId;
+        req.role = decode.role;
         next();
         // the next callback function passes the ressult or acknowledge when everything is in place 
 

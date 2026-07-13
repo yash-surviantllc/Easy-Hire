@@ -90,8 +90,10 @@ export const login = async (req, res) => {
             });
         };
 
+        //To keep the authorization check stateless(no extra db calls) here role is included in JWt payload
         const tokenData = {
-            userId: user._id
+            userId: user._id,
+            role: user.role  //Add role here
         }
 
         //used new access and refresh token mechanism for security. Revise again
@@ -214,7 +216,7 @@ export const updateProfile = async (req, res) => {
     }
 }
 
-// we will use this to display at frontend or my client app when the token is not present to relogin or regeneate new tokens
+// we will use this to display at frontend or my client app when the token is not present to relogin or regeneate new tokens 
 export const refreshToken = async (req, res) => {
     try {
         const token = req.cookies.refreshToken;
@@ -242,7 +244,7 @@ export const refreshToken = async (req, res) => {
         }
 
         const newAccessToken = jwt.sign(
-            { userId: user._id },
+            { userId: user._id, role: user.role },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: "15m" }
         );
