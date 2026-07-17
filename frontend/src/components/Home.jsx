@@ -1,12 +1,21 @@
 import React from 'react'
 import Navbar from './shared/Navbar'
-// import HeroSection from './HeroSection'
+import HeroSection from './HeroSection'
+import CategoryCarousel from './CategoryCarousel'
+import LatestJobs from './LatestJobs'
+import LatestJobCards from './LatestJobCards'
+import Footer from './shared/Footer'
 
 const Home = () => {
     return (
-        <Navbar />
-        // <HeroSection/>
-
+        <div>
+            <Navbar />
+            <HeroSection />
+            <CategoryCarousel />
+            <LatestJobs />
+            <LatestJobCards />
+            <Footer />
+        </div>
 
     )
 }
