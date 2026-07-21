@@ -8,7 +8,7 @@ const router = express.Router();
 router.route("/register").post(singleUpload, register);
 router.route("/login").post(login);
 router.route("/logout").get(logout).post(logout);
-router.route("/profile/update").post(isAuthenticated, updateProfile); // we are using isAuthenticated middleware to check if the user is authenticated or not before updating the profile
+router.route("/profile/update").post(isAuthenticated, singleUpload, updateProfile); // we are using isAuthenticated middleware to check if the user is authenticated or not before updating the profile
 router.route("/refresh").post(refreshToken);
 
 export default router;
