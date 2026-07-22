@@ -3,6 +3,8 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import getDataUri from "../utils/datauri.js";
+import cloudinary from "../utils/cloudinary.js";
 
 
 // register user- also used in route
@@ -15,6 +17,11 @@ export const register = async (req, res) => {
                 success: false
             });
         };
+
+        const file = req.file;
+        const fileUri = getDataUri(file);
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
@@ -29,7 +36,10 @@ export const register = async (req, res) => {
             email,
             phoneNumber,
             password: hashedPassword,
-            role
+            role,
+            profile: {
+                profilePhoto: cloudResponse.secure_url,
+            }
         });
 
         return res.status(201).json({
@@ -160,12 +170,15 @@ export const logout = async (req, res) => {
 }
 export const updateProfile = async (req, res) => {
     try {
-        const { fullName, email, phoneNumber, bio, skills } = req.body;
-        const file = req.file; // resume file will come here
+        const { fullName, fullname, email, phoneNumber, bio, skills } = req.body;
 
-        //cloudinary integration will come here for resume file upload
+        const file = req.file;
+        let cloudResponse = null;
+        if (file) {
+            const fileUri = getDataUri(file);
+            cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        }
 
-        // const skillsArray = skills.split(","); use an array to store skills
         const skillsArray = skills ? skills.split(",") : [];
 
         const userId = req.userId; //userid is required to update the profile , middleware authentication
@@ -177,13 +190,17 @@ export const updateProfile = async (req, res) => {
             });
         }
         //updating user profile data , we used if condition because during updaation user can update any field or all fields, so we need to check if the field is present or not
-        if (fullName) user.fullName = fullName
+        if (fullName || fullname) user.fullName = fullName || fullname
         if (email) user.email = email
         if (phoneNumber) user.phoneNumber = phoneNumber
         if (bio) user.profile.bio = bio
         if (skills) user.profile.skills = skillsArray
 
         //resume will come later here...
+        if (cloudResponse && file) {
+            user.profile.resume = cloudResponse.secure_url // save the cloudinary url
+            user.profile.resumeOriginalName = file.originalname // Save the original file name
+        }
         await user.save();
 
         user = {
@@ -206,6 +223,12 @@ export const updateProfile = async (req, res) => {
         if (error.name === 'ValidationError') {
             return res.status(400).json({
                 message: Object.values(error.errors).map(val => val.message).join(', '),
+                success: false
+            });
+        }
+        if (error.code === 11000) {
+            return res.status(400).json({
+                message: "Email already exists with another account",
                 success: false
             });
         }
