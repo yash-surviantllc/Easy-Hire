@@ -34,6 +34,14 @@ const Signup = () => {
     }
     const submitHandler = async (e) => {
         e.preventDefault();
+
+        // Password validation: minimum 8 characters with at least one special symbol
+        const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+        if (!passwordRegex.test(input.password)) {
+            toast.error("Password must be at least 8 characters long and contain at least one special character");
+            return;
+        }
+
         const formData = new FormData();    //formdata object
         formData.append("fullName", input.fullName);
         formData.append("email", input.email);

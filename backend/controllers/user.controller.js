@@ -18,9 +18,13 @@ export const register = async (req, res) => {
             });
         };
 
-        const file = req.file;
-        const fileUri = getDataUri(file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters long and contain at least one special character",
+                success: false
+            });
+        }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -36,10 +40,7 @@ export const register = async (req, res) => {
             email,
             phoneNumber,
             password: hashedPassword,
-            role,
-            profile: {
-                profilePhoto: cloudResponse.secure_url,
-            }
+            role
         });
 
         return res.status(201).json({
@@ -170,7 +171,7 @@ export const logout = async (req, res) => {
 }
 export const updateProfile = async (req, res) => {
     try {
-        const { fullName, fullname, email, phoneNumber, bio, skills } = req.body;
+        const { fullName, email, phoneNumber, bio, skills } = req.body;
 
         const file = req.file;
         let cloudResponse = null;
@@ -190,7 +191,7 @@ export const updateProfile = async (req, res) => {
             });
         }
         //updating user profile data , we used if condition because during updaation user can update any field or all fields, so we need to check if the field is present or not
-        if (fullName || fullname) user.fullName = fullName || fullname
+        if (fullName) user.fullName = fullName
         if (email) user.email = email
         if (phoneNumber) user.phoneNumber = phoneNumber
         if (bio) user.profile.bio = bio
