@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import Navbar from './components/shared/Navbar'
 import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
 import Home from './components/Home'
@@ -9,6 +10,10 @@ import JobDescription from './components/JobDescription'
 import Companies from './components/admin/Companies'
 import CompanyCreate from './components/admin/CompanyCreate'
 import CompanySetup from './components/admin/CompanySetup'
+import AdminJobs from "./components/admin/AdminJobs";
+import PostJob from './components/admin/PostJob'
+import Applicants from './components/admin/Applicants'
+import ProtectedRoute from './components/admin/ProtectedRoute'
 
 
 const appRouter = createBrowserRouter([
@@ -43,15 +48,27 @@ const appRouter = createBrowserRouter([
   // admin ke liye yha se start hoga
   {
     path: "/admin/companies",
-    element: <Companies />
+    element: <ProtectedRoute><Companies /></ProtectedRoute>
   },
   {
     path: "/admin/companies/create",
-    element: <CompanyCreate />
+    element: <ProtectedRoute><CompanyCreate /></ProtectedRoute>
   },
   {
     path: "/admin/companies/:id",
-    element: <CompanySetup />
+    element: <ProtectedRoute><CompanySetup /></ProtectedRoute>
+  },
+  {
+    path: "/admin/jobs",
+    element: <ProtectedRoute><AdminJobs /></ProtectedRoute>
+  },
+  {
+    path: "/admin/jobs/create",
+    element: <ProtectedRoute><PostJob /></ProtectedRoute>
+  },
+  {
+    path: "/admin/jobs/:id/applicants",
+    element: <ProtectedRoute><Applicants /></ProtectedRoute>
   },
 
 ])
