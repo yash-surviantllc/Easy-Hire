@@ -73,13 +73,13 @@ const Navbar = () => {
                                                 <AvatarImage src={user?.profile?.profilePhoto} alt="@shadcn" />
                                             </Avatar>
                                             <div>
-                                                <h4 className='font-medium'>{user?.fullname}</h4>
+                                                <h4 className='font-medium'>{user?.fullName}</h4>
                                                 <p className='text-sm text-muted-foreground'>{user?.profile?.bio}</p>
                                             </div>
                                         </div>
                                         <div className='flex flex-col my-2 text-gray-600'>
                                             {
-                                                user && user.role === 'student' && (
+                                                user && user.role === 'candidate' && (
                                                     <div className='flex w-fit items-center gap-2 cursor-pointer'>
                                                         <User2 />
                                                         <Button variant="link"> <Link to="/profile">View Profile</Link></Button>

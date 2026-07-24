@@ -15,7 +15,7 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
     const { user } = useSelector(store => store.auth);
 
     const [input, setInput] = useState({
-        fullname: user?.fullName || "",
+        fullName: user?.fullName || "",
         email: user?.email || "",
         phoneNumber: user?.phoneNumber || "",
         bio: user?.profile?.bio || "",
@@ -36,7 +36,7 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
     const submitHandler = async (e) => {
         e.preventDefault();
         const formData = new FormData();
-        formData.append("fullname", input.fullname);
+        formData.append("fullName", input.fullName);
         formData.append("email", input.email);
         formData.append("phoneNumber", input.phoneNumber);
         formData.append("bio", input.bio);
