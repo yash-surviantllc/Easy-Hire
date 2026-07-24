@@ -22,7 +22,20 @@ if (frontendOrigin.endsWith("/")) {
     frontendOrigin = frontendOrigin.slice(0, -1);
 }
 const corsOptions = {
-    origin: frontendOrigin,
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        
+        const isAllowed = 
+            origin === "http://localhost:5173" ||
+            origin === frontendOrigin ||
+            origin.endsWith(".vercel.app");
+            
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
 };
 app.use(cors(corsOptions));
