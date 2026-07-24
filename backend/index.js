@@ -17,8 +17,12 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+let frontendOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+if (frontendOrigin.endsWith("/")) {
+    frontendOrigin = frontendOrigin.slice(0, -1);
+}
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: frontendOrigin,
     credentials: true,
 };
 app.use(cors(corsOptions));
