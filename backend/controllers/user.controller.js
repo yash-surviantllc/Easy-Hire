@@ -138,9 +138,20 @@ export const login = async (req, res) => {
             savedJobs: user.savedJobs || []
         };
 
+        const isProduction = process.env.NODE_ENV === "production";
         return res.status(200)
-            .cookie("accessToken", accessToken, { maxAge: 15 * 60 * 1000, httpOnly: true, sameSite: 'strict' })
-            .cookie("refreshToken", refreshToken, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict' })
+            .cookie("accessToken", accessToken, { 
+                maxAge: 15 * 60 * 1000, 
+                httpOnly: true, 
+                sameSite: isProduction ? 'none' : 'lax', 
+                secure: isProduction 
+            })
+            .cookie("refreshToken", refreshToken, { 
+                maxAge: 7 * 24 * 60 * 60 * 1000, 
+                httpOnly: true, 
+                sameSite: isProduction ? 'none' : 'lax', 
+                secure: isProduction 
+            })
             .json({
                 message: `Welcome back ${user.fullName}`,
                 user,
@@ -168,9 +179,20 @@ export const logout = async (req, res) => {
             }
         }
         //cleared my AT and RT when user logs out
+        const isProduction = process.env.NODE_ENV === "production";
         return res.status(200)
-            .cookie("accessToken", "", { maxAge: 0, httpOnly: true, sameSite: 'strict' })
-            .cookie("refreshToken", "", { maxAge: 0, httpOnly: true, sameSite: 'strict' })
+            .cookie("accessToken", "", { 
+                maxAge: 0, 
+                httpOnly: true, 
+                sameSite: isProduction ? 'none' : 'lax', 
+                secure: isProduction 
+            })
+            .cookie("refreshToken", "", { 
+                maxAge: 0, 
+                httpOnly: true, 
+                sameSite: isProduction ? 'none' : 'lax', 
+                secure: isProduction 
+            })
             .json({
                 message: "Logout successfully",
                 success: true
@@ -298,8 +320,14 @@ export const refreshToken = async (req, res) => {
             { expiresIn: "15m" }
         );
 
+        const isProduction = process.env.NODE_ENV === "production";
         return res.status(200)
-            .cookie("accessToken", newAccessToken, { maxAge: 15 * 60 * 1000, httpOnly: true, sameSite: 'strict' })
+            .cookie("accessToken", newAccessToken, { 
+                maxAge: 15 * 60 * 1000, 
+                httpOnly: true, 
+                sameSite: isProduction ? 'none' : 'lax', 
+                secure: isProduction 
+            })
             .json({
                 message: "Token refreshed successfully",
                 success: true
