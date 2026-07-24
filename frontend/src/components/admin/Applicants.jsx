@@ -21,8 +21,10 @@ const Applicants = () => {
                 console.log(error);
             }
         }
-        fetchAllApplicants();
-    }, []);
+        if (params.id) {
+            fetchAllApplicants();
+        }
+    }, [params.id, dispatch]);
     return (
         <div>
             <Navbar />

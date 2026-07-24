@@ -14,9 +14,21 @@ const Jobs = () => {
     useEffect(() => {
         if (searchedQuery) {
             const filteredJobs = allJobs.filter((job) => {
-                return job.title.toLowerCase().includes(searchedQuery.toLowerCase()) ||
-                    job.description.toLowerCase().includes(searchedQuery.toLowerCase()) ||
-                    job.location.toLowerCase().includes(searchedQuery.toLowerCase())
+                const query = searchedQuery.toLowerCase();
+                const matchesText = job.title.toLowerCase().includes(query) ||
+                                    job.description.toLowerCase().includes(query) ||
+                                    job.location.toLowerCase().includes(query);
+
+                let matchesSalary = false;
+                if (query === "0-40k") {
+                    matchesSalary = job.salary <= 6;
+                } else if (query === "42k-1lakh") {
+                    matchesSalary = job.salary > 6 && job.salary <= 12;
+                } else if (query === "1lakh to 5lakh") {
+                    matchesSalary = job.salary > 12;
+                }
+
+                return matchesText || matchesSalary;
             })
             setFilterJobs(filteredJobs)
         } else {

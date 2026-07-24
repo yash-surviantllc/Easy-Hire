@@ -20,7 +20,8 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
         phoneNumber: user?.phoneNumber || "",
         bio: user?.profile?.bio || "",
         skills: user?.profile?.skills?.map(skill => skill) || "",
-        file: user?.profile?.resume || ""
+        file: user?.profile?.resume || "",
+        profilePhoto: user?.profile?.profilePhoto || ""
     });
     const dispatch = useDispatch();
 
@@ -29,8 +30,7 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
     }
 
     const fileChangeHandler = (e) => {
-        const file = e.target.files?.[0];
-        setInput({ ...input, file })
+        setInput({ ...input, [e.target.name]: e.target.files?.[0] })
     }
 
     const submitHandler = async (e) => {
@@ -41,8 +41,11 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
         formData.append("phoneNumber", input.phoneNumber);
         formData.append("bio", input.bio);
         formData.append("skills", input.skills);
-        if (input.file) {
+        if (input.file && typeof input.file !== "string") {
             formData.append("file", input.file);
+        }
+        if (input.profilePhoto && typeof input.profilePhoto !== "string") {
+            formData.append("profilePhoto", input.profilePhoto);
         }
         try {
             setLoading(true);
@@ -70,7 +73,7 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
 
     return (
         <div>
-            <Dialog open={open}>
+            <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="sm:max-w-[425px]" onInteractOutside={() => setOpen(false)}>
                     <DialogHeader>
                         <DialogTitle>Update Profile</DialogTitle>
@@ -126,6 +129,17 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                                     name="skills"
                                     value={input.skills}
                                     onChange={changeEventHandler}
+                                    className="col-span-3"
+                                />
+                            </div>
+                            <div className='grid grid-cols-4 items-center gap-4'>
+                                <Label htmlFor="profilePhoto" className="text-right">Profile Photo</Label>
+                                <Input
+                                    id="profilePhoto"
+                                    name="profilePhoto"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={fileChangeHandler}
                                     className="col-span-3"
                                 />
                             </div>

@@ -106,7 +106,9 @@ export const updateCompany = async (req, res) => {
 
         //cloudinary integration will come here for company logo file upload
         const fileUri = getDataUri(file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+            resource_type: "auto"
+        });
         const logo = cloudResponse.secure_url;
 
         const updateData = { name, description, website, location, logo };

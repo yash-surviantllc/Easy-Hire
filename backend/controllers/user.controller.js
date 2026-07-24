@@ -35,12 +35,25 @@ export const register = async (req, res) => {
         }
         const hashedPassword = await bcrypt.hash(password, 10); // this is salt round which makes the hashedpassword strong
 
+        const file = req.file;
+        let profilePhotoUrl = "";
+        if (file) {
+            const fileUri = getDataUri(file);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+                resource_type: "auto"
+            });
+            profilePhotoUrl = cloudResponse.secure_url;
+        }
+
         await User.create({
             fullName,
             email,
             phoneNumber,
             password: hashedPassword,
-            role
+            role,
+            profile: {
+                profilePhoto: profilePhotoUrl
+            }
         });
 
         return res.status(201).json({
@@ -121,7 +134,8 @@ export const login = async (req, res) => {
             email: user.email,
             phoneNumber: user.phoneNumber,
             role: user.role,
-            profile: user.profile
+            profile: user.profile,
+            savedJobs: user.savedJobs || []
         };
 
         return res.status(200)
@@ -173,12 +187,9 @@ export const updateProfile = async (req, res) => {
     try {
         const { fullName, email, phoneNumber, bio, skills } = req.body;
 
-        const file = req.file;
-        let cloudResponse = null;
-        if (file) {
-            const fileUri = getDataUri(file);
-            cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-        }
+        const files = req.files;
+        const resumeFile = files?.file?.[0] || null;
+        const profilePhotoFile = files?.profilePhoto?.[0] || null;
 
         const skillsArray = skills ? skills.split(",") : [];
 
@@ -197,10 +208,23 @@ export const updateProfile = async (req, res) => {
         if (bio) user.profile.bio = bio
         if (skills) user.profile.skills = skillsArray
 
-        //resume will come later here...
-        if (cloudResponse && file) {
-            user.profile.resume = cloudResponse.secure_url // save the cloudinary url
-            user.profile.resumeOriginalName = file.originalname // Save the original file name
+        // upload resume if provided
+        if (resumeFile) {
+            const fileUri = getDataUri(resumeFile);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+                resource_type: "auto"
+            });
+            user.profile.resume = cloudResponse.secure_url; // save the cloudinary url
+            user.profile.resumeOriginalName = resumeFile.originalname; // Save the original file name
+        }
+
+        // upload profile photo if provided
+        if (profilePhotoFile) {
+            const fileUri = getDataUri(profilePhotoFile);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+                resource_type: "auto"
+            });
+            user.profile.profilePhoto = cloudResponse.secure_url; // save the cloudinary url
         }
         await user.save();
 
@@ -210,7 +234,8 @@ export const updateProfile = async (req, res) => {
             email: user.email,
             phoneNumber: user.phoneNumber,
             role: user.role,
-            profile: user.profile
+            profile: user.profile,
+            savedJobs: user.savedJobs || []
         };
 
         return res.status(200).json({
@@ -286,4 +311,81 @@ export const refreshToken = async (req, res) => {
             success: false
         });
     }
-}    
+}
+
+export const toggleSaveJob = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const jobId = req.params.id;
+        if (!jobId) {
+            return res.status(400).json({
+                message: "Job ID is required",
+                success: false
+            });
+        }
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+                success: false
+            });
+        }
+        
+        if (!user.savedJobs) {
+            user.savedJobs = [];
+        }
+
+        const isSaved = user.savedJobs.includes(jobId);
+        if (isSaved) {
+            user.savedJobs = user.savedJobs.filter(id => id.toString() !== jobId);
+            await user.save();
+            return res.status(200).json({
+                message: "Job removed from saved list",
+                success: true,
+                savedJobs: user.savedJobs
+            });
+        } else {
+            user.savedJobs.push(jobId);
+            await user.save();
+            return res.status(200).json({
+                message: "Job saved successfully",
+                success: true,
+                savedJobs: user.savedJobs
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
+    }
+};
+
+export const getSavedJobs = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const user = await User.findById(userId).populate({
+            path: 'savedJobs',
+            populate: {
+                path: 'company'
+            }
+        });
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+                success: false
+            });
+        }
+        return res.status(200).json({
+            savedJobs: user.savedJobs || [],
+            success: true
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
+    }
+};    
