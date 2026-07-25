@@ -84,15 +84,22 @@ export const register = async (req, res) => {
 
 }
 export const login = async (req, res) => {
+
+    //let say emailOrPhone
     try {
-        const { email, password, role } = req.body;
-        if (!email || !password || !role) {
+        const { emailOrPhone, password, role } = req.body;
+        if (!emailOrPhone || !password || !role) {
             return res.status(400).json({
                 message: "All fields are required",
                 success: false
             });
         };
-        let user = await User.findOne({ email });
+        let user = await User.findOne({
+            $or: [
+                { email: emailOrPhone },
+                { phoneNumber: emailOrPhone }
+            ]
+        });
         if (!user) {
             return res.status(400).json({
                 message: "User not found, Incorrect email or password",
@@ -140,17 +147,17 @@ export const login = async (req, res) => {
 
         const isProduction = process.env.NODE_ENV === "production";
         return res.status(200)
-            .cookie("accessToken", accessToken, { 
-                maxAge: 15 * 60 * 1000, 
-                httpOnly: true, 
-                sameSite: isProduction ? 'none' : 'lax', 
-                secure: isProduction 
+            .cookie("accessToken", accessToken, {
+                maxAge: 15 * 60 * 1000,
+                httpOnly: true,
+                sameSite: isProduction ? 'none' : 'lax',
+                secure: isProduction
             })
-            .cookie("refreshToken", refreshToken, { 
-                maxAge: 7 * 24 * 60 * 60 * 1000, 
-                httpOnly: true, 
-                sameSite: isProduction ? 'none' : 'lax', 
-                secure: isProduction 
+            .cookie("refreshToken", refreshToken, {
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+                httpOnly: true,
+                sameSite: isProduction ? 'none' : 'lax',
+                secure: isProduction
             })
             .json({
                 message: `Welcome back ${user.fullName}`,
@@ -181,17 +188,17 @@ export const logout = async (req, res) => {
         //cleared my AT and RT when user logs out
         const isProduction = process.env.NODE_ENV === "production";
         return res.status(200)
-            .cookie("accessToken", "", { 
-                maxAge: 0, 
-                httpOnly: true, 
-                sameSite: isProduction ? 'none' : 'lax', 
-                secure: isProduction 
+            .cookie("accessToken", "", {
+                maxAge: 0,
+                httpOnly: true,
+                sameSite: isProduction ? 'none' : 'lax',
+                secure: isProduction
             })
-            .cookie("refreshToken", "", { 
-                maxAge: 0, 
-                httpOnly: true, 
-                sameSite: isProduction ? 'none' : 'lax', 
-                secure: isProduction 
+            .cookie("refreshToken", "", {
+                maxAge: 0,
+                httpOnly: true,
+                sameSite: isProduction ? 'none' : 'lax',
+                secure: isProduction
             })
             .json({
                 message: "Logout successfully",
@@ -322,11 +329,11 @@ export const refreshToken = async (req, res) => {
 
         const isProduction = process.env.NODE_ENV === "production";
         return res.status(200)
-            .cookie("accessToken", newAccessToken, { 
-                maxAge: 15 * 60 * 1000, 
-                httpOnly: true, 
-                sameSite: isProduction ? 'none' : 'lax', 
-                secure: isProduction 
+            .cookie("accessToken", newAccessToken, {
+                maxAge: 15 * 60 * 1000,
+                httpOnly: true,
+                sameSite: isProduction ? 'none' : 'lax',
+                secure: isProduction
             })
             .json({
                 message: "Token refreshed successfully",
@@ -358,7 +365,7 @@ export const toggleSaveJob = async (req, res) => {
                 success: false
             });
         }
-        
+
         if (!user.savedJobs) {
             user.savedJobs = [];
         }

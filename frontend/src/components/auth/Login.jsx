@@ -15,6 +15,8 @@ import { Loader2 } from 'lucide-react'
 const Login = () => {
     const [input, setInput] = useState({
         email: "",
+        //lets use emailOrPhone
+        emailOrPhone: "",
         password: "",
         role: "",
     });
@@ -60,13 +62,13 @@ const Login = () => {
                 <form onSubmit={submitHandler} className='w-1/2 border border-gray-200 rounded-md p-4 my-10'>
                     <h1 className='font-bold text-xl mb-5'>Login</h1>
                     <div className='my-2'>
-                        <Label>Email</Label>
+                        <Label>Email/Phone Number</Label>
                         <Input
-                            type="email"
-                            value={input.email}
-                            name="email"
+                            type="emtextail"
+                            value={input.emailOrPhone}
+                            name="emailOrPhone"
                             onChange={changeEventHandler}
-                            placeholder="@gmail.com"
+                            placeholder="Email or phone number"
                         />
                     </div>
 
