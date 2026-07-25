@@ -15,9 +15,23 @@ const Jobs = () => {
         if (searchedQuery) {
             const filteredJobs = allJobs.filter((job) => {
                 const query = searchedQuery.toLowerCase();
-                const matchesText = job.title.toLowerCase().includes(query) ||
-                                    job.description.toLowerCase().includes(query) ||
-                                    job.location.toLowerCase().includes(query);
+                let matchesText = false;
+                if (query === "frontend developer") {
+                    matchesText = job.title.toLowerCase().includes("frontend") ||
+                                  job.description.toLowerCase().includes("frontend");
+                } else if (query === "backend developer") {
+                    matchesText = job.title.toLowerCase().includes("backend") ||
+                                  job.description.toLowerCase().includes("backend");
+                } else if (query === "fullstack developer") {
+                    matchesText = job.title.toLowerCase().includes("fullstack") ||
+                                  job.title.toLowerCase().includes("full stack") ||
+                                  job.description.toLowerCase().includes("fullstack") ||
+                                  job.description.toLowerCase().includes("full stack");
+                } else {
+                    matchesText = job.title.toLowerCase().includes(query) ||
+                                  job.description.toLowerCase().includes(query) ||
+                                  job.location.toLowerCase().includes(query);
+                }
 
                 let matchesSalary = false;
                 if (query === "0-40k") {
