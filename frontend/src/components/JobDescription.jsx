@@ -19,6 +19,10 @@ const JobDescription = () => {
     const dispatch = useDispatch();
 
     const applyJobHandler = async () => {
+        if (!user) {
+            toast.error("Please login to apply");
+            return;
+        }
         if (!user?.profile?.resume) {
             toast.error("Please update your resume in profile section.");
             return;
